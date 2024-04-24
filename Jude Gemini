@@ -1,0 +1,71 @@
+import java.awt.Color;
+import static robocode.util.Utils.*;
+import robocode.*;
+
+public class Jude extends AdvancedRobot {
+
+    // Cores para o robô
+    private static final Color COR_CORPO = Color.green;
+    private static final Color COR_ARMA = Color.black;
+    private static final Color COR_RADAR = Color.yellow;
+
+    // Velocidade do robô
+    private static final double VELOCIDADE = 5;
+
+    // Ângulo de giro do radar
+    private static final double ANGULO_RADAR = 45;
+
+    // Distância para atirar
+    private static final double DISTANCIA_TIRO = 400;
+
+    public void run() {
+        // Definir configurações do robô
+        setColors(COR_CORPO, COR_ARMA, COR_RADAR);
+        setBodyColor(COR_CORPO);
+        setGunColor(COR_ARMA);
+        setRadarColor(COR_RADAR);
+
+        // Entrar em modo de movimento constante
+        setAdjustGunForBodyTurn(true);
+        setTurnDirection(90); // Iniciar girando para a direita
+
+        while (true) {
+            // Buscar inimigos
+            scan();
+
+            // Evitar paredes
+            if (getDistanceToWall(getHeading() + 90) < 150) {
+                setTurnDirection(-getHeading());
+            } else if (getDistanceToWall(getHeading() - 90) < 150) {
+                setTurnDirection(-getHeading());
+            }
+
+            // Atirar em inimigos
+            if (getScanResults() != null) {
+                for (ScanResult scanResult : getScanResults()) {
+                    if (scanResult.isEnemy && scanResult.getDistance() < DISTANCIA_TIRO) {
+                        setTurnGunTowardHeading(scanResult.getHeading());
+                        fire(3.0);
+                    }
+                }
+            }
+        }
+    }
+
+    // Evento de detecção de robô
+    public void onScannedRobot(ScanResult scanResult) {
+        // Ignorar robôs aliados
+        if (!scanResult.isEnemy) {
+            return;
+        }
+
+        // Virar o canhão para o inimigo
+        setTurnGunTowardHeading(scanResult.getHeading());
+    }
+
+    // Evento de colisão com parede
+    public void onHitWall(HitWallEvent event) {
+        // Ajustar ângulo de giro para evitar a parede
+        setTurnDirection(-getHeading() + event.getBearing());
+    }
+}
