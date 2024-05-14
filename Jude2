@@ -1,0 +1,81 @@
+import java.awt.Color;
+import java.util.Random;
+
+// Classe principal do robô
+public class Jude extends AdvancedRobot {
+
+    // Constantes para cores
+    private static final Color CORPO_VERDE = new Color(0, 255, 0);
+    private static final Color RADAR_VERMELHO = new Color(255, 0, 0);
+
+    // Variáveis para controle do robô
+    private Random random = new Random();
+    private double headingAtual;
+    private double headingAlvo;
+
+    // Método inicial do robô
+    public void run() {
+        // Definir a cor do corpo do robô
+        setBodyColor(CORPO_VERDE);
+
+        // Loop principal do robô
+        while (true) {
+            // Atualizar o estado do robô
+            atualizarEstado();
+
+            // Identificar e atacar inimigos
+            identificarEArrastarInimigos();
+
+            // Evitar paredes
+            evitarParedes();
+
+            // Executar ações
+            executarAcoes();
+
+            // Esperar um pouco antes de repetir o loop
+            yield();
+        }
+    }
+
+    // Atualizar o estado do robô
+    private void atualizarEstado() {
+        // Armazenar o ângulo atual do robô
+        headingAtual = getHeading();
+
+        // Identificar o ângulo do alvo mais próximo, se houver
+        headingAlvo = getClosestEnemyBearing();
+    }
+
+    // Identificar e atacar inimigos
+    private void identificarEArrastarInimigos() {
+        // Verificar se há inimigos próximos
+        if (getRadarDistance() > 0) {
+            // Virar o canhão na direção do inimigo
+            turnGunTo(getClosestEnemyBearing());
+
+            // Atirar se o inimigo estiver dentro do alcance
+            if (getGunHeat() == 0 && getEnergy() > 0.5) {
+                fire(getEnergy() * 0.5);
+            }
+        }
+    }
+
+    // Evitar paredes
+    private void evitarParedes() {
+        // Verificar se há paredes à frente
+        if (getDistanceToWall(getHeading()) < 100) {
+            // Virar para um ângulo aleatório
+            double novoHeading = headingAtual + random.nextDouble() * 180 - 90;
+            setTurnAngle(novoHeading - headingAtual);
+        }
+    }
+
+    // Executar ações
+    private void executarAcoes() {
+        // Executar a ação atual
+        execute();
+
+        // Atualizar o ângulo do robô
+        headingAtual = getHeading();
+    }
+}
